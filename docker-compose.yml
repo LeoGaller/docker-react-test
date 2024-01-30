@@ -1,0 +1,22 @@
+version: "3"
+services:
+  web:
+    build: # If I use the '.' it considers that I have a Dockerfile in the directory
+      context: .
+      dockerfile: Dockerfile.dev
+      # The build part is basically saying to look at the current directory,
+      # use the local additional_context
+      # and compose the file Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules
+      - .:/app
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+        - .:/app
+    command: ["npm", "run", "test"]

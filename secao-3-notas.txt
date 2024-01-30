@@ -1,0 +1,97 @@
+Curso Docker
+    Seção 3
+        Buildkit for docker desktop
+            In ubuntu the daemon.json is on /snap/docker/current/config
+
+        Building a Dockerfile [ Writing a dockerfile == Being given a computer with no OS and being told to install google chrome on it]
+            Docker build command reference
+            https://docs.docker.com/engine/reference/builder/
+            1. Create a folder that will give name to the image
+
+            Building the image is a set of containers generated that executes a command, a snapshot is taken and another container is created
+            until all of the commands are executed.
+            
+            If you add any new "RUN" command the parts that does not have changed will not be executed again because of CACHE, but if you just 
+            change the position of the command it will not use the cache.
+            
+            Tagging an image (this is different from the image tag)
+            docker build -t leogaller/redis:latest .
+            -t {yourDockerID}/{Repo/Project Name}:{Version}
+            Sample
+            	docker build -t leogallerdev/redis:latest .
+            	
+            Creating a new image from an already running container
+            1. Start the container and install something, or just use it
+            	docker run -it alpine sh
+            	
+            2. When you are in the container terminal, install the software you need
+            	apk add --update redis
+            	
+            3. Open a new tab and generate the image adding a default command to it, remember to run docker PS before to get the container 
+            	ID you want to transform to an image
+            	docker commit -c 'CMD ["redis-server"]' aa106a5a5bca
+            	
+        Creating real projects with Docker
+        	
+            
+        References:
+            https://docs.docker.com/develop/develop-images/build_enhancements/
+            https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
+            https://www.docker.com/blog/advanced-dockerfiles-faster-builds-and-smaller-images-using-buildkit-and-multistage-builds/
+
+	Seção 4
+		Creating projects
+			Creating a Node JS Web App
+				project name: docker-udemy-nodejs
+				Create the dockerfile
+					
+				Docker compose
+				Used to start up multiple docker containers at the same time.
+				Automates some of the long-winded arguments we were passing to docker run
+				
+				 Auto restart policy
+					You can enable the container to restart in specific situations.
+						"no" = never attempt to restart (must have the double quotes because yaml can consider it different)
+						always = If the container stops, always restart
+						on-failure = Only restart if the container exits with an exit code <> 0
+						unless-stopped = Always restart unless a developer forcibly stop it.
+						
+	Secao 6
+		Production grade workflow
+			We wil use a github repo to host all of the features we are going to develop.
+				2 branches
+					Feature = where we will have all of the new features we are developing 
+					master = the final version of our application
+			
+			It is good to have a Dockerfile for DEV and PROD
+			Docker volumes
+				It is good to have so you can update some files without the need to rebuild the image. It will work as a reference to a local folder inside of the container.
+					Create a volume from docker run
+						docker run -p 3000:3000 -v $(pwd):/app sha256:e8510cd7e62aac2c3c2458e5444542b3a25c179e9c11088615630efa2eacf5fd
+						Sometimes we just need a bookmark to a folder that will only exist in the container, and in that situation we can use the -v flag pointing only to the folder in the container.
+							docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app sha256:e8510cd7e62aac2c3c2458e5444542b3a25c179e9c11088615630efa2eacf5fd
+							*** One important thing to remember is about the creation of folders that will request you to give permission to users or creating new ones. 
+									Updating it on the dockerfile
+										FROM node:16-alpine
+
+										USER node
+
+										RUN mkdir -p /home/node/app
+										WORKDIR /home/node/app
+
+										COPY --chown=node:node ./package.json ./
+										RUN npm install
+
+										COPY --chown=node:node ./ ./
+
+										CMD ["npm", "run", "start" ]
+										
+					Instead of typing a really long command for starting the service you can create docker-compose.yml file so in the end you will only need to run docker-compose up
+		Using docker compose for Running tests
+			To achieve it you can create a second service only responsible to run the tests.
+		Multi steps Dockerfile
+		    You can have more than 1 stage, for example Build and Run stages.
+
+    Section 7
+        CI/CD with AWS
+            Github + Travis CI + AWS
